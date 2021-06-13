@@ -30,7 +30,7 @@ The model ouputs probabilities of the review to belong to classes:
         1: Like, satisfied with the purchase
         2: Neutral, unclear
 
-The data were crawled (from Vietname e-commerce websites in 2021) and labeled by Trần Gia Bảo, Trần Thị Tâm Nguyên, Hoàng Thị Cẩm Tú, Uông Thị Thanh Thủy.           
+The data were crawled (from Vietname e-commerce websites in 2021) and labeled by *Trần Gia Bảo, Trần Thị Tâm Nguyên, Hoàng Thị Cẩm Tú,* and *Uông Thị Thanh Thủy*. Thanks a lot!           
 
 
 
