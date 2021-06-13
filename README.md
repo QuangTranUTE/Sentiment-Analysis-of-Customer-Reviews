@@ -7,7 +7,7 @@ This repository contains code for training a rcurrent neural network with gated 
 
 ## How to use it
 #### *1. Using it as a product review analyser* 
-Simply go to this [**Google Colab**](https://colab.research.google.com/drive/1cYNHmXSNTxkkt5wJsWcNx9wf35fkFZMW?usp=sharing), then click **Run cell** (Ctrl-Enter), input a review in Vietnamese and click **Analyze** 
+Simply go to this [**Google Colab**](https://colab.research.google.com/drive/1cYNHmXSNTxkkt5wJsWcNx9wf35fkFZMW?usp=sharing), then click **Run cell** (Ctrl-Enter), input a review in Vietnamese and click **Analyze**.
 
 ![Demo using the translator on Colab](/resources/demo.PNG "Hope you enjoy it!") 
 
