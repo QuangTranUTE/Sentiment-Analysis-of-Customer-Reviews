@@ -10,7 +10,7 @@ Simply go to this [**Google Colab**](https://colab.research.google.com/drive/1cY
 ![Demo using the translator on Colab](/resources/demo.PNG "Hope you enjoy it!") 
 
 
-#### *2. Using the training code to create your own model*
+#### *2. Using `train.py` to create your own model*
 Steps to do:
 
     1. Prepare you data (see "datasets" for details)
