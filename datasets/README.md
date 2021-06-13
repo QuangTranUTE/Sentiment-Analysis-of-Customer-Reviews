@@ -18,7 +18,7 @@ Thank *Trần Gia Bảo, Trần Thị Tâm Nguyên, Hoàng Thị Cẩm Tú,* and
 ## How to use your own data with `train.py`
 Provide a csv file with 2 colunms: **label**, **review** as described above. Note that the class labels must be **0, 1, 2** as described in step 2.
 
-**NOTE:** If you have a lot of data (e.g., >100.000 reviews) with relatively accurate rating, then you may **skip Step 3**. The model won't be affected much by several hundreds of wrong rating reviews.
+**NOTE:** If you have a lot of data (e.g., >100.000 reviews) with relatively accurate rating, then you may **skip Step 3**. The model won't be affected much by several hundreds of wrong rating reviews. (However, the better data of course gives better model, as a well-known data science quote: Garbage in, garbage out).
 
 
 
