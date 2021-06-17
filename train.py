@@ -118,22 +118,34 @@ def preprocess(X_comment, Y_label=None, for_training=False):
     '''
 
     # Delete all \n:
-    # INFO: Mosses tokenizer (used below) can NOT deal with \n
+    # INFO: Mosses tokenizer (used below) reserves punctuation (what we want).
+    #       but its can NOT deal with \n
     X_comment = [i.replace('\n',' ') for i in X_comment]
 
     # Convert to lowercase:
     X_comment = [i.lower() for i in X_comment]
 
-    # Replace digits and punctuation by spaces:
+    # Replace digits and punctuation by spaces (to remove them):
     marks_to_del = '012345678'+string.punctuation
     table = str.maketrans(marks_to_del, ' '*len(marks_to_del))
     X_comment = [i.translate(table) for i in X_comment]
 
     # Remove repeated characters, eg., đẹppppppp
+    # tryex = re.sub(r'(.)\1+', r'\1', 'san  phẩmmmmm   loooiiiii :)))))))))') 
     X_comment = [re.sub(r'(.)\1+', r'\1', s) for s in X_comment] #Regex: https://docs.python.org/3/howto/regex.html#regex-howto 
+
+    # Add accent (tool does not work so well, so DON'T use!)
+    # from pyvi import ViUtils
+    # ViUtils.add_accents('san phẩm chất luong') 
 
     # [IMPORTANT] Convert charsets (bảng mã) TCVN3, VIQG... to Unicode
     X_comment = [unicodedata.normalize('NFC', text) for text in X_comment]
+
+    # [not really necessary] Connect words (in VNese, eg., "cực kỳ" is 1 word, "sản phẩm" is 1 word)
+    #from pyvi import ViTokenizer
+    #X_comment = [ViTokenizer.tokenize(i) for i in X_comment]
+
+    print('\nSome processed comments:', X_comment[:10])
 
     # Tokenize text using Mosses tokenizer:
     # NOTE: Why choose Mosses tokenizer? See "How Much Does Tokenization Affect Neural Machine Translation?"    
@@ -144,6 +156,7 @@ def preprocess(X_comment, Y_label=None, for_training=False):
     for i in range(len(X_comment)): 
         comment = X_comment[i]
         tokens = vi_tokenize(comment) 
+        #tokens = comment.split() # may try this instead of MosesTokenizer
         if tokens!=[]: # since some sentences become empty after tokenization
             #!! Truncate sentences !!
             # NOTE: Beware! can strongly affect the performance.
@@ -155,6 +168,18 @@ def preprocess(X_comment, Y_label=None, for_training=False):
 
 
     if for_training:
+        # Have a look at a comment and its tokens
+        comment = 'Hàng xài ok nha mn,quên chụp rồi,giao_hàng nhanh_chóng đầy đủ ❤️❤️😂😂😂😂'
+        print('\n',comment)
+        with MosesTokenizer('vi') as vi_tokenize:
+            tokens = vi_tokenize(comment)
+        print('\n',tokens)
+        with MosesDetokenizer('vi') as detokenize:
+            comment_back = detokenize(tokens)
+        print('\n',comment_back)
+
+        # n_samples = len(X_comment_filtered)
+        # joblib.dump(n_samples, r'./datasets/n_samples.joblib')
         joblib.dump(X_comment_tokenized, r'./datasets/X_comment_tokenized.joblib')
         joblib.dump(X_comment_filtered, r'./datasets/X_comment_filtered.joblib')
         joblib.dump(Y_label_filtered, r'./datasets/Y_label_filtered.joblib')
@@ -172,7 +197,8 @@ def preprocess(X_comment, Y_label=None, for_training=False):
         truncated_vocab = dict(sorted(truncated_vocab.items(), key=lambda item: item[1], reverse=True)) # Just to have low ids for most appeared words
         vocab_size = len(truncated_vocab)
         print("truncated vocal_size:", vocab_size)
-        
+        #joblib.dump(vocab_size,r'./datasets/vocab_size.joblib')
+
         # Creat vocal list to convert words to ids:
         # NOTE: preserve 0, 1, 3 for end-of-seq, start-of-seq, and oov-word token
         vocab_list = ['<eos>', '<sos>', '<oov>']
@@ -186,8 +212,9 @@ def preprocess(X_comment, Y_label=None, for_training=False):
         temp_encode = [list(map(lambda word: word_to_id(word, vocab_list), sentence)) for sentence in temp_comment]
         print('\ntemp_encode:',temp_encode)
     else:
-        vocab_list = joblib.load(r'./datasets/vocab_list.joblib')        
-        
+        vocab_list = joblib.load(r'./datasets/vocab_list.joblib')
+        #vocab_size = joblib.load(r'./datasets/vocab_size.joblib')
+
     # Convert words (tokens) to ids: X_data: list of lists of token ids of X_comment_tokenized
     X_data = [list(map(lambda word: word_to_id(word, vocab_list), sentence)) for sentence in X_comment_tokenized]
 
@@ -198,18 +225,34 @@ def preprocess(X_comment, Y_label=None, for_training=False):
     max_X_len = np.max([len(sentence) for sentence in X_data])
     X_padded = [sentence + [0]*(max_X_len - len(sentence)) for sentence in X_data]  
     
+    # vocab_X_size = vocab_size + 3
+    
     if for_training:
-        print('\nDONE loading and preprocessing data.')
+        print('\nDONE preprocessing data.')
         return np.array(X_padded), np.array(Y_label_filtered), vocab_list
     else: 
         return np.array(X_padded)
 
-X_processed, Y_processed, vocab_list = preprocess(X_comment, Y_label, for_training=True)
-vocab_X_size = len(vocab_list)
-X, X_test, Y, Y_test = train_test_split(X_processed, Y_processed, test_size=0.10)
- 
-
+load_processed_data = False
+if not load_processed_data:
+    X_processed, Y_processed, vocab_list = preprocess(X_comment, Y_label, for_training=True)
+    vocab_X_size = len(vocab_list)
+    X, X_test, Y, Y_test = train_test_split(X_processed, Y_processed, test_size=0.05, random_state=48)
+    joblib.dump(X, r'datasets/X.joblib')
+    joblib.dump(Y, r'datasets/Y.joblib')
+    joblib.dump(X_test, r'datasets/X_test.joblib')
+    joblib.dump(Y_test, r'datasets/Y_test.joblib')
+    joblib.dump(vocab_list, r'datasets/vocab_list.joblib')
+else:
+    X = joblib.load(r'datasets/X.joblib')
+    Y = joblib.load(r'datasets/Y.joblib')
+    X_test = joblib.load(r'datasets/X_test.joblib')
+    Y_test = joblib.load(r'datasets/Y_test.joblib')
+    vocab_list = joblib.load(r'datasets/vocab_list.joblib')
+    vocab_X_size = len(vocab_list)
+    print('\nDone LOADING processed data.')
 #endregion
+
 
 
 # In[3]: PART 3. TRAIN AN RNN MODEL
@@ -224,7 +267,6 @@ model = keras.models.Sequential([
     keras.layers.Input(shape=[None]), #Input shape: [batch_size, n_steps]: both are varying hence None
     keras.layers.Embedding(vocab_X_size, embed_size, # convert word IDs into embeddings. Output shape: [batch_size, n_steps,embedding_size]: each word an embedding vector.
                            mask_zero=True), # mark the <pad> token. NOTE: MUST ensure padding token <pad> has id = 0
-    keras.layers.GRU(n_units, return_sequences=True),
     keras.layers.GRU(n_units, return_sequences=True),
     keras.layers.GRU(n_units, return_sequences=True),
     keras.layers.GRU(n_units, return_sequences=True),
