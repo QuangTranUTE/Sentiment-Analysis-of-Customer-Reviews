@@ -36,7 +36,8 @@ import pandas as pd
 import string
 import re 
 import unicodedata  
-    
+from sklearn.model_selection import train_test_split
+
 # Setup for GPU usage:
 physical_devices = tf.config.list_physical_devices('GPU')
 for gpu in physical_devices:
@@ -199,14 +200,14 @@ def preprocess(X_comment, Y_label=None, for_training=False):
     
     if for_training:
         print('\nDONE loading and preprocessing data.')
-        return X_padded, Y_label_filtered, vocab_list
+        return np.array(X_padded), np.array(Y_label_filtered), vocab_list
     else: 
-        return X_padded
+        return np.array(X_padded)
 
-X_padded, Y_label_filtered, vocab_list = preprocess(X_comment, Y_label, for_training=True)
+X_processed, Y_processed, vocab_list = preprocess(X_comment, Y_label, for_training=True)
 vocab_X_size = len(vocab_list)
-X = np.array(X_padded) 
-Y = np.array(Y_label_filtered)    
+X, X_test, Y, Y_test = train_test_split(X_processed, Y_processed, test_size=0.10)
+ 
 
 #endregion
 
@@ -232,18 +233,19 @@ model = keras.models.Sequential([
 model.summary()
 
 #%% 3.2. Train the model
-new_training = 0
+new_training = True
 if new_training:
     optimizer = 'nadam'
     model.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
 
-    checkpoint_name = r'models/sentiment_GRU'+'_epoch{epoch:02d}_accuracy{accuracy:.4f}'+'.h5'
-    model_checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_name, monitor='accuracy',save_best_only=True)
-    early_stop = keras.callbacks.EarlyStopping(monitor='accuracy',patience=10,restore_best_weights=True)
+    checkpoint_name = r'models/sentiment_GRU'+'_epoch{epoch:02d}_val_accuracy{val_accuracy:.4f}'+'.h5'
+    model_checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_name, monitor='val_accuracy',save_best_only=True)
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_accuracy',patience=10,restore_best_weights=True)
     tensorboard = keras.callbacks.TensorBoard(r'logs/sentiment_train_log',embeddings_freq=1, embeddings_metadata='embed_file')
     
-    history = model.fit(X, Y, epochs=n_epochs, batch_size=batch_size,
-        callbacks = [model_checkpoint, early_stop, tensorboard] )
+    model.fit(X, Y, epochs=n_epochs, batch_size=batch_size,
+        callbacks = [model_checkpoint, early_stop, tensorboard],
+        validation_data=(X_test, Y_test) )
     #model.save(r'models/sentiment_GRU.h5')
     print('DONE training.')
 else:
