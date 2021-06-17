@@ -85,17 +85,25 @@ print('\nSome reviews: \n', raw_data.head(3))
 print('\nData length:',len(raw_data))
 
 # PREPROCESS DATA:
-# [NOTE: HYPERPARAM] Under-sampling and over-sampling classes to reduce imbalance:
-data_class0=raw_data[(raw_data.new_label==0)]
-data_class1=raw_data[(raw_data.new_label==1)][:30000] # Under-sampling
-data_class2=raw_data[(raw_data.new_label==2)]
-data_class2 = data_class2.sample(frac=1) # shuffle to over-sampling
-raw_data = pd.concat([data_class0, data_class1, data_class2, data_class2[:500]]) # Over-sampling
+# [NOTE: HYPERPARAM] Under-sampling and over-sampling classes to reduce data imbalance:
+data_class0 = raw_data[(raw_data.label==0)]; print(f'Length of data_class0: {len(data_class0)} reviews.')
+data_class1 = raw_data[(raw_data.label==1)]; print(f'Length of data_class1: {len(data_class1)} reviews.')
+data_class2 = raw_data[(raw_data.label==2)]; print(f'Length of data_class2: {len(data_class2)} reviews.')
+# Resample:
+data_class1 = data_class1[:30000] # Under-sampling class 1
+data_class2 = data_class2.sample(frac=1) # Shuffle to do over-sampling below
+raw_data = pd.concat([data_class0, data_class1, data_class2, data_class2[:400]]) # Over-sampling class 2
+print('\nAFTER RESAMPLING:')
+print(f'Length of data_class0: {len(data_class0)} reviews.')
+print(f'Length of data_class1: {len(data_class1)} reviews.')
+print(f'Length of data_class2: {len(data_class2)+400} reviews.')
 
-raw_data = raw_data.sample(frac=1) # shuffle df rows
-X_comment= raw_data['comment']
-Y_label = raw_data['new_label'].to_numpy()
+# Shuffle dataframe rows:
+raw_data = raw_data.sample(frac=1) 
 
+# Split comment and label AND convert to proper data types
+X_comment= raw_data['comment'].to_numpy(dtype=np.str)
+Y_label = raw_data['label'].to_numpy(dtype=np.int8)
 
 def preprocess(X_comment, Y_label=None, for_training=False):
     '''
