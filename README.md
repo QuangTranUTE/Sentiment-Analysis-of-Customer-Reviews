@@ -1,7 +1,7 @@
 # Sentiment Analysis of Customer Reviews
 
 ## What is this?
-This repository contains code for training a rcurrent neural network with gated recurrent unit (GRU) cells. The model is used to analyse customer reviews from e-commerce websites. A model trained with about 100.000 product reviews (in Vietnamese) can be found in `models` folder.
+This repository contains code for training a rcurrent neural network with gated recurrent unit (GRU) cells. The model is used to analyse customer reviews from e-commerce websites. A model were trained using a dataset consisting of about 100.000 product reviews (in Vietnamese). See `models` folder for more info about the data.
 
 ## How to use it
 #### *1. Using it as a product review analyser* 
