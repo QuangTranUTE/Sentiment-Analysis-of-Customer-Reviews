@@ -23,6 +23,7 @@ pandas          1.2.3
 # In[1]: PART 1. IMPORT AND FUNCTIONS
 #region
 import sys
+from numpy.core.defchararray import count
 from tensorflow import keras
 assert sys.version_info >= (3, 5) # Python ≥3.5 is required
 import tensorflow as tf
@@ -361,9 +362,10 @@ print('\n\nResults (in the same order of comments:\n')
 for y, comment in zip(y_pred_label, comments):
     print(label_meaning[y], ':', comment[:50])
 
+# Compute avg. rating:
+y_values, counts = np.unique(y_pred_label, return_counts=True) 
+avg_rating = (counts[0]*1 + counts[1]*5 + counts[2]*2.5)/len(comments)
+print('\nAvg. rating of these reviews (1-5 stars):', round(avg_rating,1))
+
 #endregion
 
-
-
-
-# %%
