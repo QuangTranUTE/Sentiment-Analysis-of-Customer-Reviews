@@ -1,4 +1,4 @@
-Traning dataset can be downloaded [here](https://drive.google.com/file/d/1JlZpgM5uBZI-xeayv-AnXnW_OQjzaUYP/view?usp=sharing).
+Traning dataset consisting of more than 100.000 customer reviews can be downloaded [here](https://drive.google.com/file/d/1JlZpgM5uBZI-xeayv-AnXnW_OQjzaUYP/view?usp=sharing).
 
 ## How were the training data prepared
 The training data have been processed through following steps:
