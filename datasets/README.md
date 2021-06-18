@@ -1,4 +1,11 @@
-Traning dataset consisting of more than 100.000 customer reviews can be downloaded [here](https://drive.google.com/file/d/1JlZpgM5uBZI-xeayv-AnXnW_OQjzaUYP/view?usp=sharing).
+## About the traning dataset
+The traning dataset consists of more than 100.000 customer reviews from Vietname e-commerce websites in categories: Clothing, Shoes, Bags, Luggage, Watches, and other Fashion accessories.
+
+It were crawled and labeled by Trần Gia Bảo, Trần Thị Tâm Nguyên, Hoàng Thị Cẩm Tú, Uông Thị Thanh Thủy.          
+
+The data can be downloaded [here](https://drive.google.com/file/d/1JlZpgM5uBZI-xeayv-AnXnW_OQjzaUYP/view?usp=sharing).
+ 
+#   About 100k reviews 
 
 ## How were the training data prepared
 The training data have been processed through following steps:
