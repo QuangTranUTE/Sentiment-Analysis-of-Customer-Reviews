@@ -244,13 +244,13 @@ if not load_processed_data:
     joblib.dump(Y, r'datasets/Y.joblib')
     joblib.dump(X_test, r'datasets/X_test.joblib')
     joblib.dump(Y_test, r'datasets/Y_test.joblib')
-    joblib.dump(vocab_list, r'datasets/vocab_list.joblib')
+    joblib.dump(vocab_list, r'models/vocab_list.joblib')
 else:
     X = joblib.load(r'datasets/X.joblib')
     Y = joblib.load(r'datasets/Y.joblib')
     X_test = joblib.load(r'datasets/X_test.joblib')
     Y_test = joblib.load(r'datasets/Y_test.joblib')
-    vocab_list = joblib.load(r'datasets/vocab_list.joblib')
+    vocab_list = joblib.load(r'models/vocab_list.joblib')
     vocab_X_size = len(vocab_list)
     print('\nDone LOADING processed data.')
 #endregion
