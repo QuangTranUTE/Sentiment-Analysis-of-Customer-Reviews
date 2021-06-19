@@ -152,7 +152,7 @@ def preprocess(X_comment, Y_label=None, for_training=False):
         # NOTE: preserve 0, 1, 3 for end-of-seq, start-of-seq, and oov-word token
         vocab_list = ['<eos>', '<sos>', '<oov>']
         vocab_list.extend(list(truncated_vocab.keys()))
-        joblib.dump(vocab_list,r'./datasets/vocab_list.joblib')  
+        joblib.dump(vocab_list,r'./models/vocab_list.joblib')  
         print('Done saving vocab_list.')   
 
         # Try encode, decoding some samples:
@@ -161,7 +161,7 @@ def preprocess(X_comment, Y_label=None, for_training=False):
         temp_encode = [list(map(lambda word: word_to_id(word, vocab_list), sentence)) for sentence in temp_comment]
         print('\ntemp_encode:',temp_encode)
     else:
-        vocab_list = joblib.load(r'./datasets/vocab_list.joblib')
+        vocab_list = joblib.load(r'./models/vocab_list.joblib')
         #vocab_size = joblib.load(r'./datasets/vocab_size.joblib')
 
     # Convert words (tokens) to ids: X_data: list of lists of token ids of X_comment_tokenized
@@ -302,7 +302,7 @@ else:
 ##### NOTE: specify correct model file name below: #####
 model = keras.models.load_model(r'models/sentiment_GRU_epoch30_accuracy0.9568.h5') # BEST model here
 ##### IMPORTANT NOTE: MUST load the RIGHT vocab_list file that goes with the trained model used.
-vocab_list = joblib.load(r'datasets/vocab_list.joblib')
+vocab_list = joblib.load(r'models/vocab_list.joblib')
 label_meaning = {0: 'Không hài lòng', 1: 'Hài lòng', 2: 'Không rõ/Trung lập'}
 #region
 # 4.1. Predict 1 comment
