@@ -55,20 +55,19 @@ def word_to_id(word, vocab_list):
         return oov_id 
 def id_to_word(id, vocab_list):
     return vocab_list[id]
-def preprocess(X_comment, Y_label=None, for_training=False):
+def preprocess(X_comment, Y_label=None, for_training=False, quite=True):
     '''
     Preprocess data.
     Input: X_comment: list of strings (comments)
            Y_label: list of labels (0,1,2). Required when for_training=True
            for_training: bool. If True: generate vocab and stuff
+           quite=False: print some processed comments
     Ouput: X_processed: tokenized and padded.
-           Y_filter: list of labels filter according to X (only returned when for_training=True)
+           X_filtered, Y_filtered: some samples become empty after tokenization. The remaining X, Y are returned  (only returned when for_training=True)
            vocab_X_size: size of vocab (only returned when for_training=True)
     '''
 
     # Delete all \n:
-    # INFO: Mosses tokenizer (used below) reserves punctuation (what we want).
-    #       but its can NOT deal with \n
     X_comment = [i.replace('\n',' ') for i in X_comment]
 
     # Convert to lowercase:
@@ -80,27 +79,19 @@ def preprocess(X_comment, Y_label=None, for_training=False):
     X_comment = [i.translate(table) for i in X_comment]
 
     # Remove repeated characters, eg., đẹppppppp
-    # tryex = re.sub(r'(.)\1+', r'\1', 'san  phẩmmmmm   loooiiiii :)))))))))') 
     X_comment = [re.sub(r'(.)\1+', r'\1', s) for s in X_comment] #Regex: https://docs.python.org/3/howto/regex.html#regex-howto 
-
-    # Add accent (tool does not work so well, so DON'T use!)
-    # from pyvi import ViUtils
-    # ViUtils.add_accents('san phẩm chất luong') 
 
     # [IMPORTANT] Convert charsets (bảng mã) TCVN3, VIQG... to Unicode
     X_comment = [unicodedata.normalize('NFC', text) for text in X_comment]
 
-    # [not really necessary] Connect words (in VNese, eg., "cực kỳ" is 1 word, "sản phẩm" is 1 word)
-    #from pyvi import ViTokenizer
-    #X_comment = [ViTokenizer.tokenize(i) for i in X_comment]
-
-    print('\nSome processed comments:', X_comment[:10])
+    if not quite:
+        print('\nSome processed comments:', X_comment[:10])
 
     # Tokenize text using Mosses tokenizer:
     # NOTE: Why choose Mosses tokenizer? See "How Much Does Tokenization Affect Neural Machine Translation?"    
     vi_tokenize = MosesTokenizer('vi')
     X_comment_tokenized = []
-    X_comment_filtered = []
+    X_text_filtered = []
     Y_label_filtered = []
     for i in range(len(X_comment)): 
         comment = X_comment[i]
@@ -110,7 +101,7 @@ def preprocess(X_comment, Y_label=None, for_training=False):
             #!! Truncate sentences !!
             # NOTE: Beware! can strongly affect the performance.
             X_comment_tokenized.append(tokens[:N_WORDS_KEPT])            
-            X_comment_filtered.append(comment) 
+            X_text_filtered.append(comment) 
             if for_training:
                 Y_label_filtered.append(Y_label[i])
     vi_tokenize.close()
@@ -134,7 +125,6 @@ def preprocess(X_comment, Y_label=None, for_training=False):
         joblib.dump(Y_label_filtered, r'./datasets/Y_label_filtered.joblib')
         print('\nDone making word lists.')
 
-    if for_training:
         # Create vocabularies:
         words_list = [words for sentence in X_comment_tokenized for words in sentence]
         vocab, counts = np.unique(words_list, return_counts=True)
@@ -178,9 +168,9 @@ def preprocess(X_comment, Y_label=None, for_training=False):
     
     if for_training:
         print('\nDONE preprocessing data.')
-        return np.array(X_padded), np.array(Y_label_filtered), vocab_list
+        return np.array(X_padded), np.array(Y_label_filtered), vocab_list, np.array(X_text_filtered)
     else: 
-        return np.array(X_padded)
+        return np.array(X_padded), np.array(X_text_filtered)
 
 # Hyperparameters for preprocessing data:
 N_WORDS_KEPT = 150 # NOTE: HYPERPARAM. Number of words to keep in each sample (a line in txt files)             
@@ -237,7 +227,7 @@ Y_label = raw_data['label'].to_numpy(dtype=np.int8)
 
 load_processed_data = False
 if not load_processed_data:
-    X_processed, Y_processed, vocab_list = preprocess(X_comment, Y_label, for_training=True)
+    X_processed, Y_processed, vocab_list, X_comment_filtered = preprocess(X_comment, Y_label, for_training=True)
     vocab_X_size = len(vocab_list)
     X, X_test, Y, Y_test = train_test_split(X_processed, Y_processed, test_size=0.05, random_state=48)
     joblib.dump(X, r'datasets/X.joblib')
@@ -306,8 +296,8 @@ vocab_list = joblib.load(r'models/vocab_list.joblib')
 label_meaning = {0: 'Không hài lòng', 1: 'Hài lòng', 2: 'Không rõ/Trung lập'}
 #region
 # 4.1. Predict 1 comment
-comment = ['mẫu mã chất liệu rất ưng ý']
-X_test_padded = preprocess(comment)
+comment = ['sản phẩm đẹp rất ưng ý nhưng phải lên size 1 cỡ so với size đang đi thì mới vừa']
+X_test_padded, _ = preprocess(comment)
 y_proba = model.predict(X_test_padded)
 y_pred_label = np.argmax(y_proba[0])
 print('\n', label_meaning[y_pred_label])
@@ -355,16 +345,23 @@ comments = ['sp như hình giao hàng chậm',
             'Mua về giặt thì ra màu quá trời luôn:( đang khô nên không có hình chụp',
             'sản phẩm mình nhận đúng như hình, nhưng bao bì của sản phẩm đóng gói là hàng Việt Nam không phải như vậy. sản phẩm này của Trung Quốc',
             'tạm ổn hơi dính keo một chút trên dép, nhưng nhìn có vẻ chắc chắn']
-X_test_padded = preprocess(comments)
+X_test_padded, X_text_filtered = preprocess(comments)
 y_proba = np.round(model.predict(X_test_padded),3)
 y_pred_label = np.argmax(y_proba, axis=1)
+
+# Save predictions to csv:
+values = [[y, comment] for y, comment in zip(y_pred_label, X_text_filtered)]
+col_names = ['prediction', 'comment']
+df = pd.DataFrame(values, columns = col_names)
+df.to_csv(r'datasets/test_output.csv',index=False)
+
 print('\n\nResults (in the same order of comments:\n')
-for y, comment in zip(y_pred_label, comments):
+for y, comment in zip(y_pred_label, X_text_filtered):
     print(label_meaning[y], ':', comment[:50])
 
 # Compute avg. rating:
 y_values, counts = np.unique(y_pred_label, return_counts=True) 
-avg_rating = (counts[0]*1 + counts[1]*5 + counts[2]*2.5)/len(comments)
+avg_rating = (counts[0]*1 + counts[1]*5 + counts[2]*2.5)/len(X_text_filtered)
 print('\nAvg. rating of these reviews (1-5 stars):', round(avg_rating,1))
 
 #endregion
